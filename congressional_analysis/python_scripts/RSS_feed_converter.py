@@ -2,6 +2,7 @@ from urllib.request import urlopen
 from git import Repo
 import pandas as pd
 import xmltodict
+import re
 
 
 class RSSURLToDataFrame():
@@ -13,7 +14,12 @@ class RSSURLToDataFrame():
     def __init__(self, url, filepath):
         self.url = url
         self.filepath = filepath
+        self.TAG_RE = re.compile(r'<[^>]+>')
         self.data = pd.DataFrame()
+
+    def remove_tags(self, text):
+        """ REMOVE HTML TAGS from string """
+        return self.TAG_RE.sub('', text)
 
     def save_RSS_feed_to_file(self):
         """
@@ -65,8 +71,20 @@ class RSSURLToDataFrame():
     def save_to_CSV(self):
         CSV_PATH = self.filepath.replace('.xml','.csv')
         self.data.to_csv(CSV_PATH, index=False)
+
+    def clean_data(self):
+        df = self.data.copy()
+
+        df['title'] = df['title'].apply(self.remove_tags)
+        df['item_text'] = df['item_text'].apply(self.remove_tags)
+
+        df['title'] = df['title'].str.replace("&#39;","'")
+        df['item_text'] = df['item_text'].str.replace("&#39;","'")
+
+        self.data = df
         
     def run(self):
         self.save_RSS_feed_to_file()
-        self.convert_doc_to_df()  
+        self.convert_doc_to_df()
+        self.clean_data()  
         self.save_to_CSV()      
