@@ -27,7 +27,7 @@ def push_data_to_github():
     repo = Repo(repo_dir)
 
     # Add all data files
-    file_list = ['congressional_analysis/data/']
+    file_list = ['congressional_analysis/data/RSS_Health_Feed.csv']
     # Add and commit
     today = datetime.today().strftime('%Y-%m-%d')
     commit_message = f'Adding output data for {today}'
@@ -39,10 +39,8 @@ def push_data_to_github():
     origin.push()        
 
 # 1st Google Alert - Health Sharing
-ok = RSSURLToDataFrame(url="https://www.google.com/alerts/feeds/02061760130182022939/16026963312871264927",
-                       filepath="/Users/amlvt225/Code/GitHub/bb_consulting_public/congressional_analysis/data/google_alerts_health.xml")
-ok.run()
-
+self = OSHRSSAggregator()
+self.run()
 
 
 push_data_to_github()
