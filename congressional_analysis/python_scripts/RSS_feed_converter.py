@@ -19,6 +19,10 @@ class RSSURLToDataFrame():
         self.url = url
         
         self.TAG_RE = re.compile(r'<[^>]+>')
+        self.html_clean = {'&nbsp;':'',
+                           '&#39;':'"',
+                           '&quot;':'"'}
+        
         self.data = pd.DataFrame()
         self.google_alert_name = ''
 
@@ -91,17 +95,26 @@ class RSSURLToDataFrame():
 
     def clean_data(self):
         df = self.data.copy()
-
+        print(f"Original pull is {self.data.shape[0]} rows")
         df['title'] = df['title'].apply(self.remove_tags)
         df['item_text'] = df['item_text'].apply(self.remove_tags)
-
-        df['title'] = df['title'].str.replace("&#39;","'")
-        df['item_text'] = df['item_text'].str.replace("&#39;","'")
-
-        df['title'] = df['title'].str.replace('&quot;','"')
         
-
+        # Remove duplicate links
+        df.drop_duplicates('link', inplace=True)
         self.data = df
+        self.clean_html_tag_list()
+
+        print(f"Final .data is {self.data.shape[0]} rows")
+
+
+    def clean_html_tag_list(self):
+        cols = ['item_text','title']
+
+        # Loop thru each string to be cleaned
+        for original, clean in self.html_clean.items():
+            # Clean the string in each column
+            for col in cols:
+                self.data[col] = self.data[col].str.replace(original, clean)    
         
     def run(self):
         self.save_RSS_feed_to_file()
@@ -125,12 +138,12 @@ class OSHRSSAggregator():
             'https://www.google.com/alerts/feeds/02061760130182022939/16026963312871264927',
             'https://www.google.com/alerts/feeds/02061760130182022939/18249854163104952117',
             'https://www.google.com/alerts/feeds/02061760130182022939/3557674685145924725',
-            'https://www.google.com/alerts/feeds/02061760130182022939/3557674685145924725']
+            'https://www.google.com/alerts/feeds/02061760130182022939/3557674685145924725',
+            'https://www.google.com/alerts/feeds/02061760130182022939/4511184026626632596']
         
     def pull_data(self):
         df_list = []
         for url in self.url_list:
-            print(url)
             try:
                 RSS = RSSURLToDataFrame(url=url)
                 RSS.run()
@@ -142,6 +155,7 @@ class OSHRSSAggregator():
         
     def clean_data(self):
         self.data['google_alert_name'] = self.data['google_alert_name'].str.replace('Google Alert - ','')
+        print(f"Aggregated pull is {self.data.shape[0]} rows")
         
     def save_data_to_disk(self):
         self.data.to_csv(self.save_loc, index=False)
