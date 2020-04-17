@@ -3,7 +3,7 @@ import os
 import logging
 import pandas as pd
 from git import Repo
-from RSS_feed_converter import RSSURLToDataFrame
+from RSS_feed_converter import RSSURLToDataFrame, OSHRSSAggregator
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.DEBUG)

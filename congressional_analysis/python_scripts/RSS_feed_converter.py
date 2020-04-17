@@ -98,6 +98,9 @@ class RSSURLToDataFrame():
         df['title'] = df['title'].str.replace("&#39;","'")
         df['item_text'] = df['item_text'].str.replace("&#39;","'")
 
+        df['title'] = df['title'].str.replace('&quot;','"')
+        
+
         self.data = df
         
     def run(self):
